@@ -2,7 +2,7 @@ spring:
   application:
     name: ms-pipeline-metrobus
   datasource:
-    #url: jdbc:mysql://34.69.234.181:3306/pipeline_metrobus_db
+    url: jdbc:mysql://34.69.234.181:3306/pipeline_metrobus_db
     username: equiroz
     password: e1e2e3e4e5E
   jpa:
@@ -11,11 +11,11 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
       ddl-auto: none
     show-sql: false
-  cloud:
-    gcp:
-      sql:
-        database-name: pipeline_metrobus_db
-        instance-connection-name: springgc-standard-291615:us-central1:springdb
+  #cloud:
+    #gcp:
+      #sql:
+        #database-name: pipeline_metrobus_db
+        #instance-connection-name: springgc-standard-291615:us-central1:springdb
         
 server:
   port: 9000
