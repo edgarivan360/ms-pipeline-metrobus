@@ -18,4 +18,4 @@ spring:
         #instance-connection-name: springgc-standard-291615:us-central1:springdb
         
 server:
-  port: 9000
+  port: 8080
