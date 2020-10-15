@@ -11,6 +11,8 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
       ddl-auto: none
     show-sql: false
+  flyway:
+    enabled: true
   #cloud:
     #gcp:
       #sql:

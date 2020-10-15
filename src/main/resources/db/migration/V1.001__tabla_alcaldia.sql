@@ -1,0 +1,5 @@
+CREATE TABLE alcaldia (
+	id BIGINT(20) NOT NULL,
+	nombre VARCHAR(30) NOT NULL,
+	PRIMARY KEY (id)
+);
