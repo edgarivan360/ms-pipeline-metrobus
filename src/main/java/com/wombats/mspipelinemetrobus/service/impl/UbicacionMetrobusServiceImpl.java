@@ -1,7 +1,9 @@
 package com.wombats.mspipelinemetrobus.service.impl;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -14,9 +16,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.wombats.mspipelinemetrobus.dto.Alcaldia;
+import com.wombats.mspipelinemetrobus.dto.UbicacionMetrobus;
 import com.wombats.mspipelinemetrobus.dto.UbicacionMetrobusApi;
 import com.wombats.mspipelinemetrobus.entity.UbicacionMetrobusEntity;
 import com.wombats.mspipelinemetrobus.mapper.UbicacionMetrobusMapper;
+import com.wombats.mspipelinemetrobus.projection.AlcaldiaEntityProjection;
 import com.wombats.mspipelinemetrobus.repository.UbicacionMetrobusEntityRepository;
 import com.wombats.mspipelinemetrobus.service.IAlcaldiaService;
 import com.wombats.mspipelinemetrobus.service.IUbicacionMetrobusService;
@@ -48,10 +52,10 @@ public class UbicacionMetrobusServiceImpl implements IUbicacionMetrobusService {
 	private RestTemplate restTemplate;
 	
 	@Autowired
-	private UbicacionMetrobusEntityRepository ubicacionMetrobusEntityRepository;
+	private IAlcaldiaService alcaldiaService;
 	
 	@Autowired
-	private IAlcaldiaService alcaldiaService;
+	private UbicacionMetrobusEntityRepository ubicacionMetrobusEntityRepository;
 	
 	/**
 	 * Método que realiza la carga de ubicaciones de metrobus mediante la API
@@ -85,4 +89,90 @@ public class UbicacionMetrobusServiceImpl implements IUbicacionMetrobusService {
 		// Se guarda la lista de ubicaciones de metrobus en la BD
 		ubicacionMetrobusEntityRepository.saveAll(ubicacionMetrobusEntityList);
 	}
+	
+	/**
+	 * Método para devolver un set de alcaldía IDs
+	 * @param Lista de entidades de ubicaciones de metrobus
+	 * @return Set de alcaldía IDs
+	 */
+	@Override
+	public Set<Long> obtenerAlcaldiaIds(List<UbicacionMetrobusEntity> ubicacionMetrobusEntityList) {	
+		// Se genera un set con todos los IDs de las alcaldías asociadas a la ubicaciones de metrobus encontradas
+		return ubicacionMetrobusEntityList.stream()
+				.filter(ubicacionMetrobusEntity -> Optional.ofNullable(ubicacionMetrobusEntity.getAlcaldiaId()).isPresent())
+				.map(UbicacionMetrobusEntity::getAlcaldiaId)
+				.collect(Collectors.toSet());
+	}
+	
+	/**
+	 * Método para devolver unidades de metrobus
+	 * @param Lista de entidades de ubicaciones de metrobus
+	 * @return Lista de DTO de ubicaciones de metrobus
+	 */
+	@Override
+	public List<UbicacionMetrobus> obtenerUbicacionesMetrobus(List<UbicacionMetrobusEntity> ubicacionMetrobusEntityList) {	
+		// Se genera una lista con todos los IDs de las alcaldías asociadas a la ubicaciones de metrobus encontradas
+		Set<Long> alcaldiaIds = obtenerAlcaldiaIds(ubicacionMetrobusEntityList);
+				
+		// Se genera un map con todos las alcaldías encontradas para evitar realizar una consulta por cada iteración
+		Map<Long, AlcaldiaEntityProjection> alcaldiaMap = alcaldiaService.obtenerAlcaldiasMap(alcaldiaIds);
+				
+		// Se iteran las ubicaciones de metrobus para devolver su respectivo DTO
+		return ubicacionMetrobusEntityList.stream()
+				.map(ubicacionMetrobusEntity -> {
+					// Se guarda el ID de la alcaldía asociada a cada registro
+					// y se genera un objeto vació de la proyección SQL de las alcaldias
+					Long alcaldiaId = ubicacionMetrobusEntity.getAlcaldiaId();
+					Optional<AlcaldiaEntityProjection> alcaldiaEntityProjection = Optional.empty();
+					
+					// Si la ubicación de metrobus tiene registrado un ID de alcaldía
+					// y dicho ID está contenido en el map de las alcaldías
+					// Se settea la proyección SQL con la alcaldía correspondiente en el map
+					if (Optional.ofNullable(alcaldiaId).isPresent() && alcaldiaMap.containsKey(alcaldiaId)) {
+						alcaldiaEntityProjection = Optional.ofNullable(alcaldiaMap.get(alcaldiaId));
+					}
+					
+					// Se devuelve el DTO de las ubicaciones de metrobus
+					return UbicacionMetrobusMapper.toDto(ubicacionMetrobusEntity, alcaldiaEntityProjection);
+				}).collect(Collectors.toList());
+	}
+
+	/**
+	 * Método para devolver unidades de metrobus por estatus
+	 * @param Identificador del estatus a buscar
+	 * @return Lista de DTO de ubicaciones de metrobus
+	 */
+	@Override
+	public List<UbicacionMetrobus> obtenerUbicacionesMetrobusPorEstatus(Integer unidadEstatus) {
+		// Se buscan todas las ubicaciones metrobus por unidadEstatus
+		return obtenerUbicacionesMetrobus(
+				ubicacionMetrobusEntityRepository.findAllByUnidadEstatus(unidadEstatus));
+		
+	}
+
+	/**
+	 * Método para devolver unidades de metrobus por ID de unidad
+	 * @param Identificador de la unidad a buscar
+	 * @return Lista de DTO de ubicaciones de metrobus
+	 */
+	@Override
+	public List<UbicacionMetrobus> obtenerUbicacionesMetrobusPorUnidadId(Long unidadId) {
+		// Se buscan todas las ubicaciones metrobus por unidadEstatus
+		return obtenerUbicacionesMetrobus(
+				ubicacionMetrobusEntityRepository.findAllByUnidadId(unidadId));
+		
+	}
+
+	/**
+	 * Método para devolver unidades de metrobus por ID de alcaldía
+	 * @param Identificador de la alcaldía a buscar
+	 * @return Lista de DTO de ubicaciones de metrobus
+	 */
+	@Override
+	public List<UbicacionMetrobus> obtenerUbicacionesMetrobusPorAlcaldiaId(Long alcaldiaId) {
+		// Se buscan todas las ubicaciones metrobus por alcaldiaId
+		return obtenerUbicacionesMetrobus(
+				ubicacionMetrobusEntityRepository.findAllByAlcaldiaId(alcaldiaId));
+	}
+	
 }

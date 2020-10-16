@@ -2,9 +2,14 @@ package com.wombats.mspipelinemetrobus.mapper;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
+import org.springframework.beans.BeanUtils;
+
+import com.wombats.mspipelinemetrobus.dto.UbicacionMetrobus;
 import com.wombats.mspipelinemetrobus.dto.UbicacionMetrobusApi.Fields;
 import com.wombats.mspipelinemetrobus.entity.UbicacionMetrobusEntity;
+import com.wombats.mspipelinemetrobus.projection.AlcaldiaEntityProjection;
 
 /**
  * @author Edgar Quiroz
@@ -35,6 +40,23 @@ public final class UbicacionMetrobusMapper {
 				.ubicacionLongitud(String.valueOf(ubicacionMetrobus.getPositionLongitude()))
 				.fechaActualizacion(fechaActualizacion)
 				.build();
+	}
+	
+	/**
+	 * Método para generar un DTO de ubicaciones de metrobus
+	 * @param Entidad de ubicaciones de metrobus
+	 * @param Proyección SQL de la alcaldía asociada a los datos de la ubicación del metrobus
+	 * @return DTO de ubicaciones de metrobus
+	 */
+	public static UbicacionMetrobus toDto(UbicacionMetrobusEntity ubicacionMetrobusEntity, Optional<AlcaldiaEntityProjection> alcaldiaEntityProjection) {
+		UbicacionMetrobus ubicacionMetrobus = UbicacionMetrobus.builder().build();
+		BeanUtils.copyProperties(ubicacionMetrobusEntity, ubicacionMetrobus);
+		
+		if (alcaldiaEntityProjection.isPresent()) {
+			ubicacionMetrobus.setAlcaldia(AlcaldiaMapper.toDto(alcaldiaEntityProjection.get()));
+		}
+		
+		return ubicacionMetrobus;
 	}
 
 }

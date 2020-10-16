@@ -3,7 +3,10 @@ package com.wombats.mspipelinemetrobus.service.impl;
 import lombok.extern.java.Log;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
@@ -20,7 +23,9 @@ import com.wombats.mspipelinemetrobus.dto.AlcaldiaApi;
 import com.wombats.mspipelinemetrobus.mapper.AlcaldiaMapper;
 import com.wombats.mspipelinemetrobus.projection.AlcaldiaEntityProjection;
 import com.wombats.mspipelinemetrobus.repository.AlcaldiaEntityRepository;
+import com.wombats.mspipelinemetrobus.repository.UbicacionMetrobusEntityRepository;
 import com.wombats.mspipelinemetrobus.service.IAlcaldiaService;
+import com.wombats.mspipelinemetrobus.service.IUbicacionMetrobusService;
 
 /**
  * @author Edgar Quiroz
@@ -50,7 +55,13 @@ public class AlcaldiaServiceImpl implements IAlcaldiaService {
 	private RestTemplate restTemplate;
 	
 	@Autowired
+	private IUbicacionMetrobusService ubicacionMetrobusService;
+	
+	@Autowired
 	private AlcaldiaEntityRepository alcaldiaEntityRepository;
+	
+	@Autowired
+	private UbicacionMetrobusEntityRepository ubicacionMetrobusEntityRepository;
 	
 	/**
 	 * Método que realiza el drop&create de las alcaldías y su información espacial desde la API
@@ -102,7 +113,7 @@ public class AlcaldiaServiceImpl implements IAlcaldiaService {
 	public Optional<Alcaldia> obtenerAlcaldiaPorCoordenadas(String latitud, String longitud) {
 		// Se obtiene la alcaldía en forma de proyección SQL asociada a los valores de las coodenadas
 		Optional<AlcaldiaEntityProjection> alcaldiaEntityProjection = 
-				alcaldiaEntityRepository.findByCoordenadas(latitud, longitud);
+				alcaldiaEntityRepository.findProjectionByCoordenadas(latitud, longitud);
 		
 		// Si se obtuvieron coincidencias (alcaldía existente)
 		// Se retorna mediante una clase mapper, un DTO con el id y el nombre de la alcaldía en cuestión
@@ -115,12 +126,38 @@ public class AlcaldiaServiceImpl implements IAlcaldiaService {
 	}
 	
 	/**
-	 * Método para contar las alcaldías existentes en la BD
-	 * @return Número de alcaldías almacenadas en la BD
+	 * Método para devolver map de proyecciones SQL de alcaldias
+	 * @param Lista de entidades de ubicaciones de metrobus
+	 * @return Lista de DTO de ubicaciones de metrobus
 	 */
 	@Override
-	public Long contarAlcaldias() {
-		return alcaldiaEntityRepository.count();
+	public Map<Long, AlcaldiaEntityProjection> obtenerAlcaldiasMap(Set<Long> alcaldiaIds) {				
+		// Se genera un map con todos las alcaldías encontradas para evitar realizar una consulta por cada iteración
+		return alcaldiaEntityRepository.findAllProjectionByIdIn(alcaldiaIds).stream()
+				.collect(Collectors.toMap(AlcaldiaEntityProjection::getId, Function.identity()));
+	}
+	
+	/**
+	 * Método para obtener las alcaldías existentes en la BD
+	 * @return DTO de alcaldías
+	 */
+	@Override
+	public List<Alcaldia> obtenerAlcaldias() {
+		return alcaldiaEntityRepository.findAllProjection().stream().map(AlcaldiaMapper::toDto).collect(Collectors.toList());
+	}
+
+	/**
+	 * Método para obtener las alcaldías asociadas a ubicaciones de metrobus
+	 * @return DTO de alcaldías
+	 */
+	@Override
+	public List<Alcaldia> obtenerAlcaldiasDisponibles() {
+		// Se obtiene el set de alcaldia Ids
+		Set<Long> alcaldiaIds = ubicacionMetrobusService.obtenerAlcaldiaIds(ubicacionMetrobusEntityRepository.findAll());
+		// Se obtiene el map de las alcaldias asociadas a las ubicaciones de metrobus existentes
+		Map<Long, AlcaldiaEntityProjection> alcaldiaEntityProjectionMap = obtenerAlcaldiasMap(alcaldiaIds);
+		
+		return alcaldiaEntityProjectionMap.values().stream().map(AlcaldiaMapper::toDto).collect(Collectors.toList());
 	}
 
 }
