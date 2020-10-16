@@ -4,12 +4,9 @@ import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.AllArgsConstructor;
@@ -17,6 +14,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * @author Edgar Quiroz
+ * @version 16/10/20 1.0.0
+ * Entidad ubicaciones de metrobus
+ */
 @Data
 @Builder
 @AllArgsConstructor
@@ -29,6 +31,11 @@ public class UbicacionMetrobusEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Long id;
+	
+	//@ManyToOne(fetch = FetchType.LAZY)
+	//@JoinColumn(name = "alcaldia_id", referencedColumnName = "id")
+	@Column(name = "alcaldia_id")
+	private Long alcaldiaId;
 	
 	@Column(name = "unidad_id")
 	private Long unidadId;
@@ -48,7 +55,4 @@ public class UbicacionMetrobusEntity {
 	@Column(name = "fecha_actualizacion")
 	private LocalDateTime fechaActualizacion;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "alcaldia_id", referencedColumnName = "id")
-	private AlcaldiaEntity alcaldia;
 }

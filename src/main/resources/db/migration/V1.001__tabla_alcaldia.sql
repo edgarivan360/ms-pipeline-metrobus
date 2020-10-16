@@ -1,5 +1,6 @@
 CREATE TABLE alcaldia (
 	id BIGINT(20) NOT NULL,
 	nombre VARCHAR(30) NOT NULL,
+	region POLYGON NOT NULL,
 	PRIMARY KEY (id)
 );
