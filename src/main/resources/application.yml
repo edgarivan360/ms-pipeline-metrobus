@@ -21,3 +21,19 @@ spring:
         
 server:
   port: 8080
+  
+datos-abiertos-cdmx.api-url: https://datos.cdmx.gob.mx/api/records/1.0/search
+datos-abiertos-cdmx.api-dataset.alcaldias: /?dataset=alcaldias
+datos-abiertos-cdmx.api-dataset.ubicaciones-metrobus: /?dataset=prueba_fetchdata_metrobus
+datos-abiertos-cdmx.max-rows.alcaldias: 16
+datos-abiertos-cdmx.max-rows.ubicaciones-metrobus: 207
+  
+#logging:
+  #level:
+    #org:
+      #hibernate:
+        #SQL: DEBUG
+        #type:
+          #descriptor:
+            #sql:
+              #BasicBinder: TRACE
