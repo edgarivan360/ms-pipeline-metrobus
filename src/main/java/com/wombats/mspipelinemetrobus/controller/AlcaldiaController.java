@@ -1,5 +1,6 @@
 package com.wombats.mspipelinemetrobus.controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,24 @@ public class AlcaldiaController {
 	public Optional<Alcaldia> obtenerAlcaldiaPorCoordenadas(@RequestParam("latitud") String latitud,
 			@RequestParam("longitud") String longitud) {
 		return alcaldiaService.obtenerAlcaldiaPorCoordenadas(latitud, longitud);
+	}
+	
+	/**
+	 * End Point para la obtener catálogo de alcaldías
+	 * @return Lista de alcaldías
+	 */
+	@GetMapping("/catalogo")
+	public List<Alcaldia> obtenerAlcaldias() {
+		return alcaldiaService.obtenerAlcaldias();
+	}
+	
+	/**
+	 * End Point para la obtener alcaldías disponibles en ubicaciones de metrobus
+	 * @return Lista de alcaldías
+	 */
+	@GetMapping("/disponibles")
+	public List<Alcaldia> obtenerAlcaldiasDisponibles() {
+		return alcaldiaService.obtenerAlcaldiasDisponibles();
 	}
 
 }
