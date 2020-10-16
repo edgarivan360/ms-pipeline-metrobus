@@ -1,6 +1,8 @@
 package com.wombats.mspipelinemetrobus.repository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -18,7 +20,6 @@ import com.wombats.mspipelinemetrobus.projection.AlcaldiaEntityProjection;
 @Repository
 public interface AlcaldiaEntityRepository extends JpaRepository<AlcaldiaEntity, Long> {
 	
-	@Override
 	@Modifying
 	@Query(value = "DELETE FROM alcaldia WHERE 1 = 1", nativeQuery = true)
 	void deleteAll();
@@ -30,6 +31,15 @@ public interface AlcaldiaEntityRepository extends JpaRepository<AlcaldiaEntity, 
 	@Query(value = "SELECT a.id, a.nombre " + 
 			"FROM alcaldia a " + 
 			"WHERE ST_CONTAINS(a.region, POINT(?1, ?2)) ", nativeQuery = true)
-	Optional<AlcaldiaEntityProjection> findByCoordenadas(String latitud, String longitud);
+	Optional<AlcaldiaEntityProjection> findProjectionByCoordenadas(String latitud, String longitud);
+	
+	@Query(value = "SELECT a.id, a.nombre " + 
+			"FROM alcaldia a " + 
+			"WHERE a.id IN ?1 ", nativeQuery = true)
+	List<AlcaldiaEntityProjection> findAllProjectionByIdIn(Set<Long> id);
+	
+	@Query(value = "SELECT a.id, a.nombre " + 
+			"FROM alcaldia a ", nativeQuery = true)
+	List<AlcaldiaEntityProjection> findAllProjection();
 	
 }
